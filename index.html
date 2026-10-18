@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="sand">
+  <head>
+    <script>
+      try {
+        const savedTheme = localStorage.getItem("erevyday-theme");
+        document.documentElement.dataset.theme = savedTheme === "dark" ? "dark" : "sand";
+      } catch (error) {
+        document.documentElement.dataset.theme = "sand";
+      }
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#e4d9c8" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="EREVYDAY" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon-192.png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <title>EREVYDAY</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --serif: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, "Songti SC", serif;
+        --sans: "Avenir Next", "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+      }
+
+      :root[data-theme="sand"] {
+        color-scheme: light;
+        --bg: #e4d9c8;
+        --ink: #2c2823;
+        --muted: #6d655c;
+        --line: #d4c6b3;
+        --accent: #5a5146;
+        --accent-ink: #f8f4ee;
+        --stop: #6a5e52;
+        --stop-ink: #f8f4ee;
+        --field: #fffaf4;
+        --today: #c9b28f;
+        --future: #7a7168;
+        --band-head: #fbf6ee;
+        --band-calendar: #eadcc8;
+        --band-write: #f7f1e7;
+        --band-speak: #e7d5be;
+        --band-save: #f3e8d8;
+        --shadow: 0 14px 30px rgba(90, 70, 40, 0.08);
+      }
+
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #171614;
+        --ink: #f3efe6;
+        --muted: #b7b0a4;
+        --line: #3c3832;
+        --accent: #d9d3c7;
+        --accent-ink: #1c1b19;
+        --stop: #c4bdb0;
+        --stop-ink: #1c1b19;
+        --field: #2a2824;
+        --today: #8d7d66;
+        --future: #9a9286;
+        --band-head: #221f1c;
+        --band-calendar: #2c2925;
+        --band-write: #24221f;
+        --band-speak: #34302a;
+        --band-save: #1e1c1a;
+        --shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      * { box-sizing: border-box; }
+
+      html { -webkit-text-size-adjust: 100%; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.28), transparent 28rem),
+          var(--bg);
+        color: var(--ink);
+        font-family: var(--serif);
+        line-height: 1.5;
+        padding:
+          env(safe-area-inset-top)
+          env(safe-area-inset-right)
+          env(safe-area-inset-bottom)
+          env(safe-area-inset-left);
+      }
+
+      button, textarea { font: inherit; color: inherit; }
+      button { touch-action: manipulation; }
+
+      .wrap {
+        width: min(40rem, calc(100% - 1.5rem));
+        margin: 0 auto;
+        padding: 1.5rem 0 3rem;
+      }
+
+      .sheet {
+        background: var(--band-save);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        padding: 0;
+        overflow: hidden;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 6vw, 2.7rem);
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+
+      h2 { margin: 0; font-size: 1.15rem; font-weight: 600; }
+
+      .date, .legend, .hint, .gate, .status, .month-nav, .week, .day, .row, button {
+        font-family: var(--sans);
+      }
+
+      .date { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.92rem; }
+      .motto {
+        margin: 0.15rem 0 0;
+        color: var(--muted);
+        font-family: var(--sans);
+        font-size: 0.82rem;
+      }
+
+      header,
+      section {
+        margin: 0;
+        padding: 1.2rem 1.2rem 1.3rem;
+      }
+
+      header { padding: 0.85rem 1.2rem 0.85rem; }
+
+      header { background: var(--band-head); }
+      .band-calendar { background: var(--band-calendar); }
+      .band-write { background: var(--band-write); }
+      .band-speak { background: var(--band-speak); }
+      .band-save { background: var(--band-save); }
+
+      .month-nav {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      #month-label { text-align: center; }
+
+      .today-jump { grid-column: 1 / -1; }
+
+      .legend { margin: 0.75rem 0 0; color: var(--muted); font-size: 0.82rem; }
+
+      .themes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 0.5rem;
+      }
+
+      .theme {
+        background: var(--field);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        font-size: 0.92rem;
+        min-height: 2.75rem;
+        padding: 0.45rem 0.85rem;
+      }
+
+      .theme[aria-pressed="true"] {
+        background: var(--accent);
+        color: var(--accent-ink);
+        border-color: var(--accent);
+      }
+
+      .week, .days {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.25rem;
+      }
+
+      .week { margin-bottom: 0.25rem; color: var(--muted); font-size: 0.78rem; text-align: center; }
+
+      .day {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.08rem;
+        min-height: 3.25rem;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        background: transparent;
+        padding: 0.2rem 0;
+        color: var(--ink);
+        font-size: 1rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .day:disabled {
+        cursor: default;
+        opacity: 1;
+        color: var(--future);
+      }
+
+      .day.today { background: var(--today); }
+      .day.future { color: var(--future); }
+      .day.selected { box-shadow: inset 0 0 0 1px var(--line); }
+      .mark { font-size: 0.95rem; font-weight: 400; line-height: 1; }
+
+      .cake-wrap {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 2.15rem;
+        height: 2rem;
+      }
+
+      .heart {
+        position: absolute;
+        width: 2.15rem;
+        height: 2rem;
+        overflow: visible;
+      }
+
+      .heart path { fill: #e39aaa; }
+
+      :root[data-theme="dark"] .heart path { fill: #d08b9c; }
+
+      .cake-wrap .cake {
+        position: relative;
+        z-index: 1;
+        font-size: 1.05rem;
+        line-height: 1;
+      }
+
+      .detail { margin: 0.85rem 0 0; }
+      .detail p { margin: 0.35rem 0 0; white-space: pre-wrap; }
+
+      .sentences {
+        list-style: none;
+        counter-reset: sentence;
+        margin: 0.75rem 0 0;
+        padding: 0;
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .sentences li {
+        display: grid;
+        grid-template-columns: 1.5rem minmax(0, 1fr);
+        gap: 0.35rem;
+        align-items: start;
+      }
+
+      .sentences li::before {
+        content: counter(sentence) ".";
+        counter-increment: sentence;
+        font-family: var(--sans);
+        padding-top: 0.75rem;
+        text-align: right;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 4.6rem;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--field);
+        padding: 0.7rem 0.75rem;
+        font-size: 16px;
+        line-height: 1.45;
+      }
+
+      textarea[readonly] {
+        color: var(--muted);
+        cursor: default;
+      }
+
+      textarea:focus, button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .hint, .gate, .status { margin: 0.7rem 0 0; color: var(--muted); font-size: 0.86rem; }
+      .status:empty { display: none; }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+
+      .minutes { margin: 0; min-width: 4.5rem; }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-size: 1rem;
+        min-height: 2.75rem;
+        padding: 0.55rem 0.9rem;
+        cursor: pointer;
+      }
+
+      button.secondary, button.quiet {
+        background: var(--field);
+        color: var(--ink);
+        border: 1px solid var(--line);
+      }
+
+      button.quiet { color: var(--muted); }
+
+      button.stop { background: var(--stop); color: var(--stop-ink); }
+
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+      .save, .reset-today { margin-top: 0.85rem; }
+
+      @media (max-width: 1024px) {
+        .wrap {
+          width: min(40rem, calc(100% - 1rem));
+          padding-top: 0.75rem;
+        }
+
+        header, section { padding-left: 0.9rem; padding-right: 0.9rem; }
+
+        .save, .reset-today, .row button { width: 100%; }
+
+        .row { align-items: stretch; }
+      }
+
+      audio { width: 100%; margin-top: 0.75rem; }
+      .clock { margin: 0.7rem 0 0; font-family: var(--sans); font-variant-numeric: tabular-nums; }
+
+      .secure {
+        margin: 0.8rem 0 0;
+        color: var(--muted);
+        font-family: var(--sans);
+        font-size: 0.86rem;
+      }
+
+      .title-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .title-actions {
+        display: flex;
+        flex: none;
+        gap: 0.4rem;
+        margin-top: 0.2rem;
+      }
+
+      dialog {
+        width: min(32rem, calc(100% - 2rem));
+        max-height: calc(100dvh - 2rem);
+        margin: 1rem auto auto;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--band-head);
+        color: var(--ink);
+        padding: 1rem 1.1rem 1.15rem;
+        font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      }
+
+      dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+
+      .help-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        position: sticky;
+        top: 0;
+        background: var(--band-head);
+        padding-bottom: 0.35rem;
+      }
+
+      dialog h2 {
+        margin: 0;
+        font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+        font-size: 1.45rem;
+      }
+
+      dialog form { margin: 0; }
+      dialog ol { margin: 0.7rem 0 0; padding-left: 1.2rem; }
+      dialog li { margin: 0.55rem 0; }
+      dialog button { margin: 0; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <article class="sheet">
+        <header>
+          <div class="title-row">
+            <h1>EREVYDAY</h1>
+            <div class="title-actions">
+              <button type="button" class="secondary" id="install" hidden>Install</button>
+              <button type="button" class="secondary" id="help" aria-haspopup="dialog" aria-controls="help-dialog">Help</button>
+            </div>
+          </div>
+          <p class="date" id="today"></p>
+          <p class="motto">Every day, a little better.</p>
+          <div class="themes" role="group" aria-label="Color theme">
+            <button type="button" class="theme" data-theme="sand">Light</button>
+            <button type="button" class="theme" data-theme="dark">Dark</button>
+          </div>
+        </header>
+
+        <section class="band-calendar" aria-labelledby="month-label">
+          <div class="month-nav">
+            <button type="button" class="secondary" id="prev-month">Prev</button>
+            <h2 id="month-label"></h2>
+            <button type="button" class="secondary" id="next-month">Next</button>
+            <button type="button" class="secondary today-jump" id="today-month">Today</button>
+          </div>
+          <div class="week" aria-hidden="true">
+            <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+          </div>
+          <div class="days" id="days"></div>
+          <p class="legend">Today is the color block. A check appears after you save. A circle appears the next day if you did not.</p>
+          <div class="detail" id="detail" hidden>
+            <h2 id="detail-title"></h2>
+            <div id="detail-body"></div>
+          </div>
+        </section>
+
+        <section class="band-write" aria-labelledby="write-heading">
+          <h2 id="write-heading">Three sentences</h2>
+          <p class="hint">English only. A sentence or a short paragraph is fine.</p>
+          <p class="hint" id="day-lock" hidden>Only today can be written or recorded.</p>
+          <p class="hint" id="english-hint" hidden>Characters that are not English were removed, or punctuation was converted.</p>
+          <ol class="sentences">
+            <li><textarea id="line-1" lang="en" maxlength="1000" spellcheck="true" aria-label="English sentence 1" placeholder="Write one sentence or a short paragraph."></textarea></li>
+            <li><textarea id="line-2" lang="en" maxlength="1000" spellcheck="true" aria-label="English sentence 2" placeholder="Write one sentence or a short paragraph."></textarea></li>
+            <li><textarea id="line-3" lang="en" maxlength="1000" spellcheck="true" aria-label="English sentence 3" placeholder="Write one sentence or a short paragraph."></textarea></li>
+          </ol>
+          <button type="button" class="save" id="save-text" aria-label="Save text">Save</button>
+        </section>
+
+        <section class="band-speak" aria-labelledby="speak-heading">
+          <h2 id="speak-heading">Speaking</h2>
+          <p class="hint">Starts at 1 minute. Add a minute if you need longer, up to 3. Recording stops at the limit.</p>
+          <div class="row">
+            <p class="minutes" id="minutes-label">1 minute</p>
+            <button type="button" class="secondary" id="minus">−1 min</button>
+            <button type="button" class="secondary" id="plus">+1 min</button>
+          </div>
+          <div class="row">
+            <button type="button" id="record">Start recording</button>
+            <button type="button" class="secondary" id="rerecord" hidden>Record again</button>
+          </div>
+          <p class="clock" id="clock" hidden></p>
+          <audio id="playback" controls playsinline hidden></audio>
+          <p class="secure" id="secure" hidden>Open this page from a local address. Opening the file directly blocks the microphone.</p>
+          <button type="button" class="save" id="save-audio" aria-label="Save audio">Save</button>
+          <button type="button" class="quiet reset-today" id="reset-today" disabled>Reset today</button>
+        </section>
+        <p class="status" id="status" aria-live="polite"></p>
+      </article>
+    </main>
+
+    <dialog id="help-dialog" lang="zh-CN" aria-labelledby="help-title">
+      <div class="help-bar">
+        <h2 id="help-title">使用说明</h2>
+        <form method="dialog">
+          <button class="secondary" value="close">关闭</button>
+        </form>
+      </div>
+      <ol>
+        <li>EREVYDAY 是每天一次的英语练习。先写三句英文，每格可以是一句话，也可以是一小段。只能输入英文，中文会被去掉。</li>
+        <li>再录一段口语。默认 1 分钟。想录更久，点 +1 min，按分钟增加，最长 3 分钟。到时间会自动停止，也可以提前点 Stop。</li>
+        <li>文字下面有一个 Save，录音下面也有一个 Save。每个按钮当天成功用过一次就不能再按。文件名是 every_day_ 加上当天日期，例如 every_day_2026-10-18.txt。</li>
+        <li>两个都保存了，这一天才算完成。</li>
+        <li>只能写今天、录今天。点其他日期只能看，不能改，也不能录音。</li>
+        <li>有两种配色：Light 和 Dark。</li>
+        <li>日历上点 Today，会回到这个月。</li>
+        <li>安卓手机用 Chrome 打开这个网页，点 Install，或菜单里的“安装应用”。装好后桌面有图标，点一下就进，没网也能用。</li>
+        <li>苹果手机、平板和电脑，用浏览器打开这个网页就能用。</li>
+        <li>字和录音只留在这台设备上。把网页发给别人，对方看不到你的内容。</li>
+      </ol>
+    </dialog>
+
+    <script>
+      const STORAGE_KEY = "erevyday-v1";
+      const MAX_MINUTES = 3;
+      const fields = [
+        document.querySelector("#line-1"),
+        document.querySelector("#line-2"),
+        document.querySelector("#line-3"),
+      ];
+      const todayLabel = document.querySelector("#today");
+      const monthLabel = document.querySelector("#month-label");
+      const daysRoot = document.querySelector("#days");
+      const detail = document.querySelector("#detail");
+      const detailTitle = document.querySelector("#detail-title");
+      const detailBody = document.querySelector("#detail-body");
+      const englishHint = document.querySelector("#english-hint");
+      const dayLock = document.querySelector("#day-lock");
+      const minutesLabel = document.querySelector("#minutes-label");
+      const minusButton = document.querySelector("#minus");
+      const plusButton = document.querySelector("#plus");
+      const recordButton = document.querySelector("#record");
+      const rerecordButton = document.querySelector("#rerecord");
+      const clock = document.querySelector("#clock");
+      const playback = document.querySelector("#playback");
+      const secureNote = document.querySelector("#secure");
+      const saveTextButton = document.querySelector("#save-text");
+      const saveAudioButton = document.querySelector("#save-audio");
+      const resetTodayButton = document.querySelector("#reset-today");
+      const statusLine = document.querySelector("#status");
+
+      const today = new Date();
+      const todayKey = dayKey(today);
+      const view = { year: today.getFullYear(), month: today.getMonth() };
+      let selectedKey = todayKey;
+      let minutes = 1;
+      let audioBlob = null;
+      let audioExt = "wav";
+      let recording = false;
+      let saving = false;
+      let resetArmed = false;
+      let plusTaps = 0;
+      let recorder = null;
+      let recordTimer = null;
+      let recordStarted = 0;
+      let playbackUrl = "";
+      let dbPromise = null;
+
+      const state = load();
+      minutes = clampMinutes(state.minutes);
+      const draft = state.draft[todayKey] || state.done[todayKey] || ["", "", ""];
+      fields.forEach((field, index) => {
+        field.value = typeof draft[index] === "string" ? draft[index] : "";
+      });
+
+      todayLabel.textContent = today.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      if (!window.isSecureContext) secureNote.hidden = false;
+
+      fields.forEach((field) => {
+        let composing = false;
+        field.addEventListener("compositionstart", () => { composing = true; });
+        field.addEventListener("compositionend", () => {
+          composing = false;
+          onFieldInput(field);
+        });
+        field.addEventListener("input", () => {
+          if (!composing) onFieldInput(field);
+        });
+      });
+
+      document.querySelector("#prev-month").addEventListener("click", () => {
+        view.month -= 1;
+        if (view.month < 0) {
+          view.month = 11;
+          view.year -= 1;
+        }
+        renderCalendar();
+      });
+      document.querySelector("#next-month").addEventListener("click", () => {
+        const current = view.year === today.getFullYear() && view.month === today.getMonth();
+        if (current) return;
+        view.month += 1;
+        if (view.month > 11) {
+          view.month = 0;
+          view.year += 1;
+        }
+        renderCalendar();
+      });
+      document.querySelector("#today-month").addEventListener("click", showCurrentMonth);
+      minusButton.addEventListener("click", () => {
+        if (!viewingToday() || recording) return;
+        plusTaps = 0;
+        minutes = clampMinutes(minutes - 1);
+        state.minutes = minutes;
+        persist();
+        paintRecorder();
+      });
+      plusButton.addEventListener("click", () => {
+        if (!viewingToday() || recording) return;
+        plusTaps += 1;
+        if (plusTaps >= 10) {
+          resetArmed = true;
+          plusTaps = 0;
+        }
+        if (minutes < MAX_MINUTES) {
+          minutes = clampMinutes(minutes + 1);
+          state.minutes = minutes;
+          persist();
+        }
+        paintRecorder();
+      });
+      recordButton.addEventListener("click", () => {
+        if (recording) stopRecording();
+        else startRecording();
+      });
+      rerecordButton.addEventListener("click", clearRecording);
+      saveTextButton.addEventListener("click", saveText);
+      saveAudioButton.addEventListener("click", saveAudio);
+      resetTodayButton.addEventListener("click", resetTodaySaves);
+      const helpDialog = document.querySelector("#help-dialog");
+      document.querySelector("#help").addEventListener("click", () => {
+        helpDialog.showModal();
+      });
+      const installButton = document.querySelector("#install");
+      let installPrompt = null;
+      window.addEventListener("beforeinstallprompt", (event) => {
+        event.preventDefault();
+        installPrompt = event;
+        installButton.hidden = false;
+      });
+      installButton.addEventListener("click", async () => {
+        if (!installPrompt) return;
+        installPrompt.prompt();
+        try {
+          await installPrompt.userChoice;
+        } catch {
+          /* The browser closed the install sheet. */
+        }
+        installPrompt = null;
+        installButton.hidden = true;
+      });
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js").catch(() => {
+            /* Offline install still works after one successful visit. */
+          });
+        });
+      }
+      helpDialog.addEventListener("click", (event) => {
+        if (event.target === helpDialog) helpDialog.close();
+      });
+      const themeButtons = [...document.querySelectorAll(".theme")];
+      themeButtons.forEach((button) => {
+        button.addEventListener("click", () => applyTheme(button.dataset.theme));
+      });
+      applyTheme(document.documentElement.dataset.theme);
+
+      renderCalendar();
+      paintRecorder();
+      paintGate();
+      restoreAudio();
+
+      function viewingToday() {
+        return selectedKey === todayKey;
+      }
+
+      function applyTheme(name) {
+        const theme = name === "dark" ? "dark" : "sand";
+        document.documentElement.dataset.theme = theme;
+        themeButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.theme === theme));
+        });
+        try {
+          localStorage.setItem("erevyday-theme", theme);
+        } catch {
+          /* The choice still applies until the page is closed. */
+        }
+      }
+
+      function showSelectedDay() {
+        const open = viewingToday();
+        if (!open) {
+          resetArmed = false;
+          plusTaps = 0;
+        }
+        const saved = state.done[selectedKey];
+        const draft = state.draft[todayKey] || state.done[todayKey] || ["", "", ""];
+        fields.forEach((field, index) => {
+          field.readOnly = !open;
+          const source = open ? draft : saved;
+          const value = Array.isArray(source) && typeof source[index] === "string" ? source[index] : "";
+          field.value = value;
+        });
+        dayLock.hidden = open;
+        paintRecorder();
+      }
+
+      function onFieldInput(field) {
+        if (!viewingToday() || field.readOnly) return;
+        const next = normalizeEnglish(field.value);
+        if (next !== field.value) {
+          const caret = field.selectionStart ?? next.length;
+          const removed = field.value.length - next.length;
+          field.value = next;
+          const pos = Math.max(0, caret - removed);
+          field.setSelectionRange(pos, pos);
+          englishHint.hidden = false;
+        }
+        state.draft[todayKey] = currentLines(false);
+        persist();
+        paintGate();
+      }
+
+      function currentLines(trim = true) {
+        return fields.map((field) => (trim ? field.value.trim() : field.value));
+      }
+
+      function readyLines() {
+        return currentLines().every(isEnglishText);
+      }
+
+      function partSaved(key, kind) {
+        return Boolean(state.parts[key]?.[kind]) || Array.isArray(state.done[key]);
+      }
+
+      function resetUnlocked() {
+        return viewingToday() && resetArmed;
+      }
+
+      function paintGate() {
+        const open = viewingToday();
+        const armed = resetUnlocked();
+        saveTextButton.disabled = !open || saving || recording || partSaved(todayKey, "text") || !readyLines();
+        saveAudioButton.disabled = !open || saving || recording || partSaved(todayKey, "audio") || !(audioBlob && audioBlob.size > 0);
+        resetTodayButton.disabled = !armed;
+        resetTodayButton.classList.toggle("quiet", !armed);
+      }
+
+      function paintRecorder() {
+        minutesLabel.textContent = minutes === 1 ? "1 minute" : `${minutes} minutes`;
+        const open = viewingToday();
+        minusButton.disabled = !open || recording || minutes <= 1;
+        plusButton.disabled = !open || recording;
+        if (!open) {
+          recordButton.hidden = false;
+          recordButton.disabled = true;
+          recordButton.textContent = "Start recording";
+          recordButton.classList.remove("stop");
+          rerecordButton.hidden = true;
+          clock.hidden = true;
+          playback.hidden = true;
+          paintGate();
+          return;
+        }
+        recordButton.disabled = false;
+        const hasAudio = Boolean(audioBlob && audioBlob.size > 0);
+        recordButton.hidden = hasAudio && !recording;
+        recordButton.textContent = recording ? "Stop" : "Start recording";
+        recordButton.classList.toggle("stop", recording);
+        rerecordButton.hidden = !hasAudio || recording;
+        clock.hidden = !recording;
+        playback.hidden = !hasAudio || recording;
+        paintGate();
+      }
+
+      async function startRecording() {
+        if (!viewingToday()) {
+          setStatus("Only today can be recorded.");
+          return;
+        }
+        if (recording || !navigator.mediaDevices?.getUserMedia) {
+          setStatus("This browser cannot record.");
+          return;
+        }
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const mimeType = pickMime();
+          recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+          const chunks = [];
+          recorder.ondataavailable = (event) => {
+            if (event.data.size > 0) chunks.push(event.data);
+          };
+          recorder.onstop = () => {
+            stream.getTracks().forEach((track) => track.stop());
+            const raw = new Blob(chunks, { type: recorder.mimeType || mimeType || "audio/webm" });
+            finishRecording(raw, Date.now() - recordStarted);
+          };
+          recordStarted = Date.now();
+          const limit = minutes * 60 * 1000;
+          recording = true;
+          setStatus("");
+          paintRecorder();
+          recorder.start();
+          recordTimer = setInterval(() => {
+            const elapsed = Date.now() - recordStarted;
+            clock.textContent = `${formatClock(elapsed)} / ${formatClock(limit)}`;
+            if (elapsed >= limit) stopRecording();
+          }, 200);
+        } catch {
+          recording = false;
+          setStatus("The microphone did not start.");
+          paintRecorder();
+        }
+      }
+
+      function stopRecording() {
+        if (recordTimer) clearInterval(recordTimer);
+        recordTimer = null;
+        if (recorder && recorder.state !== "inactive") recorder.stop();
+        recording = false;
+        paintRecorder();
+      }
+
+      async function finishRecording(raw, elapsed) {
+        recording = false;
+        if (elapsed < 1000 || raw.size === 0) {
+          audioBlob = null;
+          setStatus("That recording is too short. Try again.");
+          paintRecorder();
+          return;
+        }
+        try {
+          audioBlob = await toWav(raw);
+          audioExt = "wav";
+        } catch {
+          audioBlob = raw;
+          audioExt = extensionFor(raw.type);
+        }
+        await storeAudio(todayKey, audioBlob, audioExt);
+        setPlayback(audioBlob);
+        setStatus("Recording ready. You can play it back.");
+        paintRecorder();
+      }
+
+      function clearRecording() {
+        if (!viewingToday()) return;
+        if (recording) stopRecording();
+        audioBlob = null;
+        if (playbackUrl) URL.revokeObjectURL(playbackUrl);
+        playbackUrl = "";
+        playback.removeAttribute("src");
+        playback.load();
+        forgetAudio(todayKey);
+        setStatus("");
+        paintRecorder();
+      }
+
+      function setPlayback(blob) {
+        if (playbackUrl) URL.revokeObjectURL(playbackUrl);
+        playbackUrl = URL.createObjectURL(blob);
+        playback.src = playbackUrl;
+      }
+
+      function saveText() {
+        if (!viewingToday() || saving || recording || partSaved(todayKey, "text")) return;
+        const lines = currentLines();
+        if (!lines.every(isEnglishText)) return;
+        saving = true;
+        paintGate();
+        try {
+          download(new Blob([formatText(todayKey, lines)], { type: "text/plain;charset=utf-8" }), `every_day_${todayKey}.txt`);
+          markSaved("text", lines);
+          setStatus("");
+        } catch {
+          setStatus("Could not save.");
+        } finally {
+          saving = false;
+          paintGate();
+        }
+      }
+
+      function saveAudio() {
+        if (!viewingToday() || saving || recording || partSaved(todayKey, "audio")) return;
+        if (!audioBlob || audioBlob.size === 0) return;
+        saving = true;
+        paintGate();
+        try {
+          download(audioBlob, `every_day_${todayKey}.${audioExt}`);
+          markSaved("audio", currentLines());
+          setStatus("");
+        } catch {
+          setStatus("Could not save.");
+        } finally {
+          saving = false;
+          paintGate();
+        }
+      }
+
+      function showCurrentMonth() {
+        view.year = today.getFullYear();
+        view.month = today.getMonth();
+        selectedKey = todayKey;
+        renderCalendar();
+      }
+
+      function resetTodaySaves() {
+        if (!resetUnlocked()) return;
+        resetArmed = false;
+        plusTaps = 0;
+        delete state.done[todayKey];
+        delete state.parts[todayKey];
+        persist();
+        setStatus("");
+        renderCalendar();
+        paintRecorder();
+      }
+
+      function markSaved(kind, lines) {
+        if (!state.parts[todayKey]) state.parts[todayKey] = {};
+        state.parts[todayKey][kind] = true;
+        if (kind === "text") state.draft[todayKey] = lines;
+        if (partSaved(todayKey, "text") && partSaved(todayKey, "audio")) {
+          state.done[todayKey] = lines.every(isEnglishText) ? lines : (state.draft[todayKey] || lines);
+        }
+        persist();
+        renderCalendar();
+      }
+
+      function download(blob, filename) {
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = filename;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2500);
+      }
+
+      function renderCalendar() {
+        const currentMonth = view.year === today.getFullYear() && view.month === today.getMonth();
+        document.querySelector("#next-month").disabled = currentMonth;
+        monthLabel.textContent = new Date(view.year, view.month, 1).toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        });
+        daysRoot.replaceChildren();
+        const firstWeekday = (new Date(view.year, view.month, 1).getDay() + 6) % 7;
+        for (let i = 0; i < firstWeekday; i += 1) daysRoot.append(document.createElement("span"));
+        const count = new Date(view.year, view.month + 1, 0).getDate();
+        for (let day = 1; day <= count; day += 1) {
+          const key = dayKey(new Date(view.year, view.month, day));
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "day";
+          const done = partSaved(key, "text") && partSaved(key, "audio");
+          const isToday = key === todayKey;
+          const future = key > todayKey;
+          const birthday = key.slice(5) === "07-03";
+          if (birthday) {
+            button.classList.add("birthday");
+            button.append(cakeMark());
+            button.append(dayMark("✅"));
+            button.setAttribute("aria-label", `${labelDate(key)}, birthday`);
+          } else {
+            button.append(document.createTextNode(String(day)));
+            if (isToday) {
+              button.classList.add("today");
+              if (done) {
+                button.append(dayMark("✅"));
+                button.setAttribute("aria-label", `${labelDate(key)}, done`);
+              } else {
+                button.setAttribute("aria-label", `${labelDate(key)}, today`);
+              }
+            } else if (done) {
+              button.classList.add("done");
+              button.append(dayMark("✅"));
+              button.setAttribute("aria-label", `${labelDate(key)}, done`);
+            } else if (!future) {
+              button.classList.add("missed");
+              button.append(dayMark("⭕️"));
+              button.setAttribute("aria-label", `${labelDate(key)}, not done`);
+            } else {
+              button.classList.add("future");
+              button.setAttribute("aria-label", `${labelDate(key)}, not open yet`);
+            }
+          }
+          if (key === selectedKey) button.classList.add("selected");
+          button.addEventListener("click", () => selectDay(key));
+          daysRoot.append(button);
+        }
+        if (selectedKey.slice(0, 7) === `${view.year}-${String(view.month + 1).padStart(2, "0")}`) {
+          selectDay(selectedKey);
+        }
+      }
+
+      function cakeMark() {
+        const wrap = document.createElement("span");
+        wrap.className = "cake-wrap";
+        wrap.setAttribute("aria-hidden", "true");
+        const heart = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        heart.setAttribute("class", "heart");
+        heart.setAttribute("viewBox", "0 0 32 30");
+        heart.setAttribute("aria-hidden", "true");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M16 27C16 27 2.6 17.6 2.6 10.4 2.6 6.2 6 3 10.1 3c2.4 0 4.4 1.2 5.9 3.1C17.5 4.2 19.5 3 21.9 3 26 3 29.4 6.2 29.4 10.4 29.4 17.6 16 27 16 27z");
+        heart.append(path);
+        const cake = document.createElement("span");
+        cake.className = "cake";
+        cake.textContent = "🎂";
+        wrap.append(heart, cake);
+        return wrap;
+      }
+
+      function dayMark(symbol, extraClass) {
+        const mark = document.createElement("span");
+        mark.className = extraClass ? `mark ${extraClass}` : "mark";
+        mark.setAttribute("aria-hidden", "true");
+        mark.textContent = symbol;
+        return mark;
+      }
+
+      function selectDay(key) {
+        if (key !== todayKey && recording) stopRecording();
+        selectedKey = key;
+        daysRoot.querySelectorAll(".day").forEach((button) => {
+          button.classList.toggle("selected", button.getAttribute("aria-label")?.startsWith(labelDate(key)) || false);
+        });
+        detail.hidden = true;
+        showSelectedDay();
+      }
+
+      function formatText(date, lines) {
+        return `${date}\n\n${lines.map((line, index) => `${index + 1}.\n${line}`).join("\n\n")}\n`;
+      }
+
+      function normalizeEnglish(value) {
+        return value
+          .replace(/\u00a0/g, " ")
+          .replace(/[，]/g, ",")
+          .replace(/[。]/g, ".")
+          .replace(/[！]/g, "!")
+          .replace(/[？]/g, "?")
+          .replace(/[：]/g, ":")
+          .replace(/[；]/g, ";")
+          .replace(/[“”]/g, '"')
+          .replace(/[‘’]/g, "'")
+          .replace(/[（]/g, "(")
+          .replace(/[）]/g, ")")
+          .replace(/[—–]/g, "-")
+          .replace(/[^\S\n]+/g, (spaces) => spaces)
+          .replace(/[^A-Za-z0-9\s.,!?;:'"()\-\n/]/g, "");
+      }
+
+      function isEnglishText(value) {
+        const trimmed = value.trim();
+        return /[A-Za-z]/.test(trimmed) && normalizeEnglish(trimmed) === trimmed;
+      }
+
+      function pickMime() {
+        const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+        return types.find((type) => MediaRecorder.isTypeSupported(type)) || "";
+      }
+
+      function extensionFor(type) {
+        if (type.includes("mp4")) return "m4a";
+        if (type.includes("ogg")) return "ogg";
+        if (type.includes("wav")) return "wav";
+        return "webm";
+      }
+
+      async function toWav(blob) {
+        const context = new AudioContext();
+        try {
+          const decoded = await context.decodeAudioData(await blob.arrayBuffer());
+          return encodeWav(decoded);
+        } finally {
+          await context.close();
+        }
+      }
+
+      function encodeWav(buffer) {
+        const length = buffer.length;
+        const sampleRate = buffer.sampleRate;
+        const mono = new Float32Array(length);
+        for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+          const data = buffer.getChannelData(channel);
+          for (let i = 0; i < length; i += 1) mono[i] += data[i] / buffer.numberOfChannels;
+        }
+        const dataSize = length * 2;
+        const bytes = new ArrayBuffer(44 + dataSize);
+        const view = new DataView(bytes);
+        writeAscii(view, 0, "RIFF");
+        view.setUint32(4, 36 + dataSize, true);
+        writeAscii(view, 8, "WAVE");
+        writeAscii(view, 12, "fmt ");
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeAscii(view, 36, "data");
+        view.setUint32(40, dataSize, true);
+        let offset = 44;
+        for (let i = 0; i < length; i += 1) {
+          const sample = Math.max(-1, Math.min(1, mono[i]));
+          view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+          offset += 2;
+        }
+        return new Blob([bytes], { type: "audio/wav" });
+      }
+
+      function writeAscii(view, offset, text) {
+        for (let i = 0; i < text.length; i += 1) view.setUint8(offset + i, text.charCodeAt(i));
+      }
+
+      function formatClock(ms) {
+        const total = Math.max(0, Math.ceil(ms / 1000));
+        const mins = Math.floor(total / 60);
+        const secs = String(total % 60).padStart(2, "0");
+        return `${mins}:${secs}`;
+      }
+
+      function dayKey(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function labelDate(key) {
+        const [year, month, day] = key.split("-").map(Number);
+        return new Date(year, month - 1, day).toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        });
+      }
+
+      function clampMinutes(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return 1;
+        return Math.min(MAX_MINUTES, Math.max(1, Math.round(number)));
+      }
+
+      function load() {
+        const fresh = { minutes: 1, draft: {}, done: {}, parts: {} };
+        try {
+          const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+          if (!data || typeof data !== "object") return fresh;
+          return {
+            minutes: clampMinutes(data.minutes),
+            draft: data.draft && typeof data.draft === "object" ? data.draft : {},
+            done: data.done && typeof data.done === "object" ? data.done : {},
+            parts: data.parts && typeof data.parts === "object" ? data.parts : {},
+          };
+        } catch {
+          return fresh;
+        }
+      }
+
+      function persist() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            minutes,
+            draft: state.draft,
+            done: state.done,
+            parts: state.parts,
+          }));
+        } catch {
+          setStatus("The browser could not store the draft. Saving the files will still be tried.");
+        }
+      }
+
+      function setStatus(text) {
+        statusLine.textContent = text;
+      }
+
+      function db() {
+        if (!dbPromise) {
+          dbPromise = idbOpen().catch((error) => {
+            dbPromise = null;
+            throw error;
+          });
+        }
+        return dbPromise;
+      }
+
+      function idbOpen() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open("erevyday", 1);
+          request.onupgradeneeded = () => {
+            if (!request.result.objectStoreNames.contains("kv")) request.result.createObjectStore("kv");
+          };
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      function idbGet(database, key) {
+        return new Promise((resolve, reject) => {
+          const request = database.transaction("kv", "readonly").objectStore("kv").get(key);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      function idbSet(database, key, value) {
+        return new Promise((resolve, reject) => {
+          const tx = database.transaction("kv", "readwrite");
+          tx.objectStore("kv").put(value, key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      function idbDelete(database, key) {
+        return new Promise((resolve, reject) => {
+          const tx = database.transaction("kv", "readwrite");
+          tx.objectStore("kv").delete(key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      async function storeAudio(date, blob, ext) {
+        try {
+          const database = await db();
+          await idbSet(database, `audio:${date}`, { blob, ext });
+        } catch {
+          /* A missing draft recording still leaves this session able to save. */
+        }
+      }
+
+      async function forgetAudio(date) {
+        try {
+          const database = await db();
+          await idbDelete(database, `audio:${date}`);
+        } catch {
+          /* Keeping an old recording does not block a new one. */
+        }
+      }
+
+      async function restoreAudio() {
+        try {
+          const database = await db();
+          const saved = await idbGet(database, `audio:${todayKey}`);
+          if (!saved?.blob || saved.blob.size === 0) return;
+          audioBlob = saved.blob;
+          audioExt = saved.ext || extensionFor(saved.blob.type || "");
+          setPlayback(audioBlob);
+          paintRecorder();
+        } catch {
+          /* No saved recording means the record button starts fresh. */
+        }
+      }
+    </script>
+  </body>
+</html>
