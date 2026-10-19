@@ -1,4 +1,4 @@
-/* EREVYDAY offline support.
+/* EVERYDAY offline support.
    Keeps a copy of the app on the device so it opens with no network.
    Online, the page always comes from the network (so updates show up);
    offline, or if the network takes too long, the saved copy is used.
@@ -6,11 +6,14 @@
    If you change THIS file or the icons, bump VERSION (v2, v3, ...).
    Changing index.html alone needs no bump. */
 
-const VERSION = "v1";
-const PREFIX = "erevyday-";
+const VERSION = "v2";
+// Internal label for the offline copies. Don't rename it later, or old copies won't be cleaned up.
+const PREFIX = "everyday-";
+// Copies saved under the app's earlier, misspelled name; removed once, then never used.
+const LEGACY_PREFIXES = ["erevyday-"];
 const CACHE = PREFIX + VERSION;
 const PAGE = new URL("index.html", self.location).href;
-const EXTRAS = ["manifest.json", "icon-192.png", "icon-512.png"].map(
+const EXTRAS = ["manifest.json", "icon-192.png", "icon-512.png", "icon-maskable-512.png"].map(
   (path) => new URL(path, self.location).href
 );
 const SCOPE_PATH = new URL("./", self.location).pathname;
@@ -36,7 +39,10 @@ self.addEventListener("activate", (event) => {
     const keys = await caches.keys();
     await Promise.all(
       keys
-        .filter((key) => key.startsWith(PREFIX) && key !== CACHE)
+        .filter((key) =>
+          (key.startsWith(PREFIX) && key !== CACHE) ||
+          LEGACY_PREFIXES.some((old) => key.startsWith(old))
+        )
         .map((key) => caches.delete(key))
     );
     await self.clients.claim();

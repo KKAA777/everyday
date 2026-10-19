@@ -14,11 +14,11 @@
     <meta name="theme-color" content="#e4d9c8" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="EREVYDAY" />
+    <meta name="apple-mobile-web-app-title" content="EVERYDAY" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="icon-192.png" />
     <link rel="apple-touch-icon" href="icon-192.png" />
-    <title>EREVYDAY</title>
+    <title>EVERYDAY</title>
     <style>
       :root {
         color-scheme: light;
@@ -411,7 +411,7 @@
       <article class="sheet">
         <header>
           <div class="title-row">
-            <h1>EREVYDAY</h1>
+            <h1>EVERYDAY</h1>
             <div class="title-actions">
               <button type="button" class="secondary" id="install" hidden>Install</button>
               <button type="button" class="secondary" id="help" aria-haspopup="dialog" aria-controls="help-dialog">Help</button>
@@ -486,7 +486,7 @@
         </form>
       </div>
       <ol>
-        <li>EREVYDAY 是每天一次的英语练习。先写三句英文，每格可以是一句话，也可以是一小段。只能输入英文，中文会被去掉。</li>
+        <li>EVERYDAY 是每天一次的英语练习。先写三句英文，每格可以是一句话，也可以是一小段。只能输入英文，中文会被去掉。</li>
         <li>再录一段口语。默认 1 分钟。想录更久，点 +1 min，按分钟增加，最长 3 分钟。到时间会自动停止，也可以提前点 Stop。</li>
         <li>文字下面有一个 Save，录音下面也有一个 Save。每个按钮当天成功用过一次就不能再按。文件名是 every_day_ 加上当天日期，例如 every_day_2026-10-18.txt。</li>
         <li>两个都保存了，这一天才算完成。</li>
@@ -500,7 +500,11 @@
     </dialog>
 
     <script>
-      const STORAGE_KEY = "erevyday-v1";
+      // Storage labels: "everyday-v1", "everyday-theme" and the "everyday" database.
+      // Saved days, drafts and recordings are filed under them. Once the app is in use,
+      // never rename them (each is read and written in more than one place), or all of
+      // that will disappear from the app.
+      const STORAGE_KEY = "everyday-v1";
       const MAX_MINUTES = 3;
       const fields = [
         document.querySelector("#line-1"),
@@ -675,7 +679,7 @@
           button.setAttribute("aria-pressed", String(button.dataset.theme === theme));
         });
         try {
-          localStorage.setItem("erevyday-theme", theme);
+          localStorage.setItem("everyday-theme", theme);
         } catch {
           /* The choice still applies until the page is closed. */
         }
@@ -1184,7 +1188,7 @@
 
       function idbOpen() {
         return new Promise((resolve, reject) => {
-          const request = indexedDB.open("erevyday", 1);
+          const request = indexedDB.open("everyday", 1);
           request.onupgradeneeded = () => {
             if (!request.result.objectStoreNames.contains("kv")) request.result.createObjectStore("kv");
           };
